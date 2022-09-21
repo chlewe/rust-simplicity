@@ -89,10 +89,10 @@ pub trait AppError: std::error::Error {}
 /// Jets are **always** leaf nodes in a Simplicity DAG.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct JetNode<App: Application> {
-    pub(crate) name: App::JetName,
-    cmr: Cmr,
-    pub(crate) source_ty: TypeName,
-    pub(crate) target_ty: TypeName,
+    pub name: App::JetName,
+    pub cmr: Cmr,
+    pub source_ty: TypeName,
+    pub target_ty: TypeName,
 }
 
 impl<App: Application> JetNode<App> {

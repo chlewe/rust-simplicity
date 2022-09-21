@@ -78,7 +78,7 @@ impl BitMachine {
     }
 
     /// Write a single bit to the active write frame
-    pub(crate) fn write_bit(&mut self, bit: bool) {
+    pub fn write_bit(&mut self, bit: bool) {
         self.write
             .last_mut()
             .expect("Empty write frame stack")
@@ -87,7 +87,7 @@ impl BitMachine {
 
     /// Move the cursor of the active write frame forward by
     /// a specified number of bits
-    pub(crate) fn skip(&mut self, n: usize) {
+    pub fn skip(&mut self, n: usize) {
         // short circuit n = 0
         if n == 0 {
             return;
@@ -131,7 +131,7 @@ impl BitMachine {
     }
 
     /// Write a big-endian u64 value to the active write frame
-    pub(crate) fn write_u64(&mut self, value: u64) {
+    pub fn write_u64(&mut self, value: u64) {
         self.write
             .last_mut()
             .expect("Empty write frame stack")
@@ -139,7 +139,7 @@ impl BitMachine {
     }
 
     /// Write a big-endian u32 value to the active write frame
-    pub(crate) fn write_u32(&mut self, value: u32) {
+    pub fn write_u32(&mut self, value: u32) {
         self.write
             .last_mut()
             .expect("Empty write frame stack")
@@ -147,7 +147,7 @@ impl BitMachine {
     }
 
     /// Write a big-endian u16 value to the active write frame
-    pub(crate) fn write_u16(&mut self, value: u16) {
+    pub fn write_u16(&mut self, value: u16) {
         self.write
             .last_mut()
             .expect("Empty write frame stack")
@@ -155,7 +155,7 @@ impl BitMachine {
     }
 
     /// Write a big-endian u8 value to the active write frame
-    pub(crate) fn write_u8(&mut self, value: u8) {
+    pub fn write_u8(&mut self, value: u8) {
         self.write
             .last_mut()
             .expect("Empty write frame stack")
@@ -163,7 +163,7 @@ impl BitMachine {
     }
 
     /// Read a big-endian u64 value from the active read frame
-    pub(crate) fn read_u64(&mut self) -> u64 {
+    pub fn read_u64(&mut self) -> u64 {
         self.read
             .last_mut()
             .expect("Empty read frame stack")
@@ -171,7 +171,7 @@ impl BitMachine {
     }
 
     /// Read a big-endian u32 value from the active read frame
-    pub(crate) fn read_u32(&mut self) -> u32 {
+    pub fn read_u32(&mut self) -> u32 {
         self.read
             .last_mut()
             .expect("Empty read frame stack")
@@ -179,7 +179,7 @@ impl BitMachine {
     }
 
     /// Read a big-endian u16 value from the active read frame
-    pub(crate) fn read_u16(&mut self) -> u16 {
+    pub fn read_u16(&mut self) -> u16 {
         self.read
             .last_mut()
             .expect("Empty read frame stack")
@@ -187,7 +187,7 @@ impl BitMachine {
     }
 
     /// Read a big-endian u8 value from the active read frame
-    pub(crate) fn read_u8(&mut self) -> u8 {
+    pub fn read_u8(&mut self) -> u8 {
         self.read
             .last_mut()
             .expect("Empty read frame stack")
@@ -195,7 +195,7 @@ impl BitMachine {
     }
 
     /// Read a bit from the active read frame
-    pub(crate) fn read_bit(&mut self) -> bool {
+    pub fn read_bit(&mut self) -> bool {
         self.read
             .last_mut()
             .expect("Empty read frame stack")
@@ -203,7 +203,7 @@ impl BitMachine {
     }
 
     /// Read 32 bytes from the active read frame
-    pub(crate) fn read_32bytes(&mut self) -> [u8; 32] {
+    pub fn read_32bytes(&mut self) -> [u8; 32] {
         let mut ret = [0u8; 32];
         for byte in &mut ret {
             *byte = self
@@ -216,7 +216,7 @@ impl BitMachine {
     }
 
     /// Read the given number of bytes from the active read frame
-    pub(crate) fn read_bytes(&mut self, n: usize) -> Vec<u8> {
+    pub fn read_bytes(&mut self, n: usize) -> Vec<u8> {
         let mut ret = Vec::with_capacity(n);
         for _i in 0..n {
             ret.push(
@@ -230,7 +230,7 @@ impl BitMachine {
     }
 
     /// Write a bit string to the active write frame
-    pub(crate) fn write_bytes(&mut self, bytes: &[u8]) {
+    pub fn write_bytes(&mut self, bytes: &[u8]) {
         for bit in bytes {
             self.write_u8(*bit);
         }
