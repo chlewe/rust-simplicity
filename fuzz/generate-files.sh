@@ -21,8 +21,11 @@ publish = false
 cargo-fuzz = true
 
 [dependencies]
-honggfuzz = { version = "0.5.55", default-features = false }
+libfuzzer-sys = "0.4"
 simplicity-lang = { path = "..", features = ["test-utils"] }
+
+[dev-dependencies]
+base64 = "0.22.1"
 EOF
 
 for targetFile in $(listTargetFiles); do
@@ -32,6 +35,9 @@ for targetFile in $(listTargetFiles); do
 [[bin]]
 name = "$targetName"
 path = "$targetFile"
+test = false
+doc = false
+bench = false
 EOF
 done
 
@@ -49,6 +55,7 @@ on:
 
 jobs:
   fuzz:
+    name: Run Fuzz Target
     if: \${{ !github.event.act }}
     runs-on: ubuntu-latest
     strategy:
@@ -58,10 +65,11 @@ jobs:
 $(for name in $(listTargetNames); do echo "$name,"; done)
         ]
     steps:
-      - name: Install test dependencies
-        run: sudo apt-get update -y && sudo apt-get install -y binutils-dev libunwind8-dev libcurl4-openssl-dev libelf-dev libdw-dev cmake gcc libiberty-dev
-      - uses: actions/checkout@v4
-      - uses: actions/cache@v3
+      - name: Checkout Crate
+        uses: actions/checkout@v4
+
+      - name: Use Rust Cache
+        uses: actions/cache@v4
         id: cache-fuzz
         with:
           path: |
@@ -69,28 +77,46 @@ $(for name in $(listTargetNames); do echo "$name,"; done)
             fuzz/target
             target
           key: cache-\${{ matrix.target }}-\${{ hashFiles('**/Cargo.toml','**/Cargo.lock') }}
-      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: '1.65.0'
-      - name: fuzz
-        run: |
-          echo "Using RUSTFLAGS \$RUSTFLAGS"
-          cd fuzz && cargo update && cargo update -p cc --precise 1.0.83 && ./fuzz.sh "\${{ matrix.fuzz_target }}"
-      - run: echo "\${{ matrix.fuzz_target }}" >executed_\${{ matrix.fuzz_target }}
-      - uses: actions/upload-artifact@v3
+          toolchain: nightly-2024-07-01
+          components: "llvm-tools-preview"
+
+      - name: Install Dependencies
+        run: cargo update && cargo update -p cc --precise 1.0.83 && cargo install cargo-fuzz
+
+      - name: Run Fuzz Target
+        run: ./fuzz/fuzz.sh "\${{ matrix.fuzz_target }}"
+
+      - name: Prepare Artifact
+        run: echo "\${{ matrix.fuzz_target }}" >executed_\${{ matrix.fuzz_target }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: executed_\${{ matrix.fuzz_target }}
           path: executed_\${{ matrix.fuzz_target }}
 
   verify-execution:
+    name: Verify Execution of All Targets
     if: \${{ !github.event.act }}
     needs: fuzz
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v3
-      - name: Display structure of downloaded files
+      - name: Checkout Crate
+        uses: actions/checkout@v4
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Display Structure of Downloaded Files
         run: ls -R
-      - run: find executed_* -type f -exec cat {} + | sort > executed
-      - run: source ./fuzz/fuzz-util.sh && listTargetNames | sort | diff - executed
+
+      - name: Write File With All Executed Targets
+        run: find executed_* -type f -exec cat {} + | sort > executed
+
+      - name: Compare Executed Targets With Available Targets
+        run: source ./fuzz/fuzz-util.sh && listTargetNames | sort | diff - executed
 EOF
